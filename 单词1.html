@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U1词汇消消乐</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5dc; /* 奶白色背景 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin-top: 20px;
+            font-size: 36px;
+            color: #333;
+        }
+        #bubble-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            width: 90%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+        .bubble {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateZ(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #007BFF; /* 默认蓝色 */
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .bubble:hover {
+            transform: translateZ(20px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        .bubble.highlight {
+            border: 3px solid #ffcc00;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        @media (max-width: 600px) {
+            .bubble {
+                width: 60px;
+                height: 60px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>U1词汇消消乐</h1>
+    <div id="bubble-container"></div>
+    <div id="message"></div>
+
+    <script>
+        const words = [
+            { chinese: "上交", english: "hand in" },
+            { chinese: "检查", english: "go through" },
+            { chinese: "推迟", english: "put off" },
+            { chinese: "开始做", english: "get down to" },
+            { chinese: "通过", english: "get through" },
+            { chinese: "勉强通过", english: "scrape through" },
+            { chinese: "写下", english: "take down" },
+            { chinese: "跟得上", english: "keep up with" },
+            { chinese: "落后", english: "fall behind" },
+            { chinese: "赶上", english: "catch up with" }
+        ];
+
+        const bubbleContainer = document.getElementById('bubble-container');
+        const messageDiv = document.getElementById('message');
+        let selectedBubble = null;
+        let startTime = null;
+        let endTime = null;
+        let audio;
+
+        function createBubbles() {
+            const allWords = [...words.map(w => w.chinese), ...words.map(w => w.english)];
+            const shuffledWords = shuffleArray(allWords);
+
+            shuffledWords.forEach(word => {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.textContent = word;
+                bubble.style.backgroundColor = getRandomColor();
+                bubble.addEventListener('click', () => handleBubbleClick(bubble));
+                bubbleContainer.appendChild(bubble);
+            });
+        }
+
+        function handleBubbleClick(bubble) {
+            if (!startTime) {
+                startTime = new Date();
+            }
+
+            playSound();
+            if (selectedBubble) {
+                // 检查两个泡泡是否匹配（无论顺序）
+                if (isMatch(selectedBubble.textContent, bubble.textContent)) {
+                    selectedBubble.style.display = 'none';
+                    bubble.style.display = 'none';
+                    checkWin();
+                } else {
+                    selectedBubble.classList.remove('highlight');
+                }
+                selectedBubble = null;
+            } else {
+                if (selectedBubble) {
+                    selectedBubble.classList.remove('highlight');
+                }
+                selectedBubble = bubble;
+                selectedBubble.classList.add('highlight');
+            }
+        }
+
+        // 检查两个单词是否匹配（无论顺序）
+        function isMatch(word1, word2) {
+            const wordPair = words.find(w => 
+                (w.chinese === word1 && w.english === word2) || 
+                (w.chinese === word2 && w.english === word1)
+            );
+            return wordPair !== undefined;
+        }
+
+        function checkWin() {
+            const remainingBubbles = document.querySelectorAll('.bubble:not([style*="display: none"])');
+            if (remainingBubbles.length === 0) {
+                endTime = new Date();
+                const timeTaken = (endTime - startTime) / 1000;
+                messageDiv.textContent = `恭喜你挑战成功！用时：${timeTaken.toFixed(2)}秒`;
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getRandomColor() {
+            const colors = ['#007BFF', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#e83e8c', '#fd7e14'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function playSound() {
+            if (!audio) {
+                audio = new Audio('泡泡音.mp3');
+                audio.load();
+            }
+            audio.play().catch(error => {
+                console.error("音效播放失败:", error);
+            });
+        }
+
+        createBubbles();
+    </script>
+</body>
+</html>
