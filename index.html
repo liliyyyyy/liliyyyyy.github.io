@@ -3,178 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>U1词汇消消乐</title>
+    <title>超级马里奥记单词游戏</title>
     <style>
+        /* 保持原有CSS样式不变 */
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5dc; /* 奶白色背景 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             font-family: Arial, sans-serif;
-        }
-        h1 {
-            margin-top: 20px;
-            font-size: 36px;
-            color: #333;
-        }
-        #bubble-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            width: 90%;
-            max-width: 800px;
-            margin-top: 20px;
-        }
-        .bubble {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 10px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transform: translateZ(0);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background-color: #007BFF; /* 默认蓝色 */
+            background-color: #5C94FC;
+            margin: 0;
+            overflow: hidden;
             color: white;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+        .word {
+            position: absolute;
             font-size: 14px;
-            font-weight: bold;
-            text-align: center;
+            color: black;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transform: translateZ(0);
         }
-        .bubble:hover {
-            transform: translateZ(20px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        .meaning {
+            position: absolute;
+            bottom: 20px;
+            font-size: 20px;
+            color: #FFFFFF;
+            background-color: #E52B50;
+            padding: 10px 40px;
+            border-radius: 20px;
+            user-select: none;
+            cursor: pointer;
         }
-        .bubble.highlight {
-            border: 3px solid #ffcc00;
+        #start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: white;
+            background-color: #E52B50;
+            padding: 20px 40px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
-        #message {
-            margin-top: 20px;
+        #lives {
+            position: absolute;
+            top: 10px;
+            right: 10px;
             font-size: 24px;
-            color: #333;
+            color: red;
         }
-        @media (max-width: 600px) {
-            .bubble {
-                width: 60px;
-                height: 60px;
+        #lives span {
+            margin: 0 2px;
+        }
+        #try-again, #congratulations {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: white;
+            text-align: center;
+            display: none;
+        }
+        #restart-button {
+            padding: 10px 20px;
+            font-size: 24px;
+            border-radius: 20px;
+            background-color: #E52B50;
+            color: white;
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #progress-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+            position: absolute;
+            left: 0;
+        }
+        #progress-text {
+            position: absolute;
+            font-size: 14px;
+            color: black;
+            z-index: 1;
+        }
+        #progress-indicator {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+            transition: left 0.3s ease;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        .shake {
+            animation: shake 0.2s linear;
+        }
+        @media (max-width: 768px) {
+            .word {
+                width: 50px;
+                height: 50px;
                 font-size: 12px;
+            }
+            .meaning {
+                font-size: 16px;
+                padding: 8px 30px;
+            }
+            #start-button {
+                font-size: 24px;
+                padding: 15px 30px;
+            }
+            #lives {
+                font-size: 20px;
+            }
+            #try-again, #congratulations {
+                font-size: 36px;
+            }
+            #restart-button {
+                font-size: 20px;
+                padding: 8px 16px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>U1词汇消消乐</h1>
-    <div id="bubble-container"></div>
-    <div id="message"></div>
+    <div id="game-container">
+        <div id="start-button">开始游戏</div>
+        <div id="lives">
+            <span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span>
+        </div>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+            <div id="progress-text">0/10</div>
+            <div id="progress-indicator"></div>
+        </div>
+        <div id="try-again">
+            Try Again!
+            <button id="restart-button">Restart</button>
+        </div>
+        <div id="congratulations">
+            Congratulations!
+            <button id="restart-button">Restart</button>
+        </div>
+    </div>
 
     <script>
+        const gameContainer = document.getElementById('game-container');
         const words = [
-            { chinese: "上交", english: "hand in" },
-            { chinese: "检查", english: "go through" },
-            { chinese: "推迟", english: "put off" },
-            { chinese: "开始做", english: "get down to" },
-            { chinese: "通过", english: "get through" },
-            { chinese: "勉强通过", english: "scrape through" },
-            { chinese: "写下", english: "take down" },
-            { chinese: "跟得上", english: "keep up with" },
-            { chinese: "落后", english: "fall behind" },
-            { chinese: "赶上", english: "catch up with" }
+            "come down with", "pick up a cold", "get over", "cut down on", "get through",
+            "put on weight", "cut out", "take up", "pass out", "come round"
         ];
+        const meanings = [
+            "患上", "感冒", "恢复，克服", "减少", "通过，完成",
+            "增重", "戒除，停止", "开始", "昏倒", "苏醒，恢复意识"
+        ];
+        let lives = 5;
+        let currentMeaningIndex = 0;
+        let meaningElement = null;
+        let isGameOver = false;
+        let isGameWon = false;
+        let wordInterval = null;
+        let totalWords = words.length;
+        let completedWords = 0;
+        let isDragging = false;
 
-        const bubbleContainer = document.getElementById('bubble-container');
-        const messageDiv = document.getElementById('message');
-        let selectedBubble = null;
-        let startTime = null;
-        let endTime = null;
-        let audio;
-
-        function createBubbles() {
-            const allWords = [...words.map(w => w.chinese), ...words.map(w => w.english)];
-            const shuffledWords = shuffleArray(allWords);
-
-            shuffledWords.forEach(word => {
-                const bubble = document.createElement('div');
-                bubble.className = 'bubble';
-                bubble.textContent = word;
-                bubble.style.backgroundColor = getRandomColor();
-                bubble.addEventListener('click', () => handleBubbleClick(bubble));
-                bubbleContainer.appendChild(bubble);
-            });
+        function updateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const progressIndicator = document.getElementById('progress-indicator');
+            const progress = (completedWords / totalWords) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${completedWords}/${totalWords}`;
+            progressIndicator.style.left = `${progress}%`;
         }
 
-        function handleBubbleClick(bubble) {
-            if (!startTime) {
-                startTime = new Date();
+        function updateLives() {
+            const livesElement = document.getElementById('lives');
+            livesElement.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                livesElement.innerHTML += '<span>❤️</span>';
             }
+            if (lives <= 0) {
+                endGame(false);
+            }
+        }
 
-            playSound();
-            if (selectedBubble) {
-                // 检查两个泡泡是否匹配（无论顺序）
-                if (isMatch(selectedBubble.textContent, bubble.textContent)) {
-                    selectedBubble.style.display = 'none';
-                    bubble.style.display = 'none';
-                    checkWin();
-                } else {
-                    selectedBubble.classList.remove('highlight');
-                }
-                selectedBubble = null;
+        function nextMeaning() {
+            currentMeaningIndex = (currentMeaningIndex + 1) % meanings.length;
+            meaningElement.textContent = meanings[currentMeaningIndex];
+            if (completedWords === totalWords) {
+                endGame(true);
+            }
+        }
+
+        function endGame(isWin) {
+            isGameOver = true;
+            clearInterval(wordInterval);
+            gameContainer.innerHTML = `
+                <div id="start-button">开始游戏</div>
+                <div id="lives"><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span></div>
+                <div id="progress-container">
+                    <div id="progress-bar"></div>
+                    <div id="progress-text">0/${totalWords}</div>
+                    <div id="progress-indicator"></div>
+                </div>
+                <div id="try-again">
+                    Try Again!
+                    <button id="restart-button">Restart</button>
+                </div>
+                <div id="congratulations">
+                    Congratulations!
+                    <button id="restart-button">Restart</button>
+                </div>
+            `;
+            if (isWin) {
+                document.getElementById('congratulations').style.display = 'block';
             } else {
-                if (selectedBubble) {
-                    selectedBubble.classList.remove('highlight');
-                }
-                selectedBubble = bubble;
-                selectedBubble.classList.add('highlight');
+                document.getElementById('try-again').style.display = 'block';
             }
         }
 
-        // 检查两个单词是否匹配（无论顺序）
-        function isMatch(word1, word2) {
-            const wordPair = words.find(w => 
-                (w.chinese === word1 && w.english === word2) || 
-                (w.chinese === word2 && w.english === word1)
-            );
-            return wordPair !== undefined;
+        function restartGame() {
+            lives = 5;
+            currentMeaningIndex = 0;
+            completedWords = 0;
+            isGameOver = false;
+            isGameWon = false;
+            document.getElementById('try-again').style.display = 'none';
+            document.getElementById('congratulations').style.display = 'none';
+            document.getElementById('start-button').style.display = 'none';
+            updateLives();
+            updateProgress();
+            startGame();
         }
 
-        function checkWin() {
-            const remainingBubbles = document.querySelectorAll('.bubble:not([style*="display: none"])');
-            if (remainingBubbles.length === 0) {
-                endTime = new Date();
-                const timeTaken = (endTime - startTime) / 1000;
-                messageDiv.textContent = `恭喜你挑战成功！用时：${timeTaken.toFixed(2)}秒`;
+        document.getElementById('start-button').addEventListener('click', function() {
+            this.style.display = 'none';
+            startGame();
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'restart-button') {
+                restartGame();
             }
-        }
+        });
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function getRandomColor() {
-            const colors = ['#007BFF', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#e83e8c', '#fd7e14'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-
-        function playSound() {
-            if (!audio) {
-                audio = new Audio('泡泡音.mp3');
-                audio.load();
-            }
-            audio.play().catch(error => {
-                console.error("音效播放失败:", error);
+        function enableDragging(element) {
+            element.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
             });
+
+            element.addEventListener('touchstart', function(e) {
+                isDragging = true;
+                document.addEventListener('touchmove', onTouchMove);
+                document.addEventListener('touchend', onTouchEnd);
+            });
+
+            function onMouseMove(e) {
+                if (isDragging) {
+                    const newX = e.clientX - element.offsetWidth / 2;
+                    element.style.left = `${Math.max(0, Math.min(window.innerWidth - element.offsetWidth, newX))}px`;
+                }
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            function onTouchMove(e) {
+                if (isDragging) {
+                    const touch = e.touches[0];
+                    const newX = touch.clientX - element.offsetWidth / 2;
+                    element.style.left = `${Math.max(0, Math.min(window.innerWidth - element.offsetWidth, newX))}px`;
+                }
+            }
+
+            function onTouchEnd() {
+                isDragging = false;
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', onTouchEnd);
+            }
         }
 
-        createBubbles();
+        function startGame() {
+            completedWords = 0;
+            updateProgress();
+
+            currentMeaningIndex = 0;
+            meaningElement = document.createElement('div');
+            meaningElement.className = 'meaning';
+            meaningElement.textContent = meanings[currentMeaningIndex];
+            meaningElement.style.left = `${(window.innerWidth - meaningElement.offsetWidth) / 2}px`;
+            gameContainer.appendChild(meaningElement);
+
+            enableDragging(meaningElement);
+
+            wordInterval = setInterval(() => {
+                if (!isGameOver && words.length > 0) {
+                    // 正确答案概率调整为20%，错误答案概率为80%
+                    const isCorrect = Math.random() < 0.2;
+                    let randomWord;
+                    if (isCorrect) {
+                        randomWord = words[currentMeaningIndex]; // 20%概率出现正确答案
+                    } else {
+                        // 从剩余的9个单词中随机选择一个错误答案
+                        const wrongWords = words.filter((word, index) => index !== currentMeaningIndex);
+                        randomWord = wrongWords[Math.floor(Math.random() * wrongWords.length)];
+                    }
+
+                    const wordElement = document.createElement('div');
+                    wordElement.className = 'word';
+                    wordElement.textContent = randomWord;
+                    wordElement.style.left = `${Math.random() * (window.innerWidth - 60)}px`;
+                    wordElement.style.top = '0px';
+                    gameContainer.appendChild(wordElement);
+
+                    let topPos = 0;
+                    const fallInterval = setInterval(() => {
+                        topPos += 2;
+                        wordElement.style.top = `${topPos}px`;
+
+                        const wordRect = wordElement.getBoundingClientRect();
+                        const meaningRect = meaningElement.getBoundingClientRect();
+                        if (
+                            wordRect.left < meaningRect.right &&
+                            wordRect.right > meaningRect.left &&
+                            wordRect.bottom > meaningRect.top
+                        ) {
+                            if (!isGameOver) {
+                                if (wordElement.textContent === words[currentMeaningIndex]) {
+                                    wordElement.remove();
+                                    clearInterval(fallInterval);
+                                    completedWords++;
+                                    updateProgress();
+                                    nextMeaning();
+                                } else {
+                                    wordElement.classList.add('shake');
+                                    lives--;
+                                    updateLives();
+                                    setTimeout(() => {
+                                        wordElement.remove();
+                                    }, 200);
+                                    clearInterval(fallInterval);
+                                }
+                            }
+                        }
+
+                        if (topPos >= window.innerHeight - 100) {
+                            clearInterval(fallInterval);
+                            wordElement.remove();
+                        }
+                    }, 20);
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
